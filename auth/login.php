@@ -142,6 +142,22 @@
             margin-top: 22px;
         }
 
+        .forgot-password {
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.forgot-password a {
+    color: #6c4ab6;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
         /* Mobile layout */
         @media (max-width: 700px) {
 
@@ -220,6 +236,10 @@
                 >
 
                 <button type="submit">Login</button>
+
+                <div class="forgot-password">
+    <a href="forgot_password.php">Forgot your password?</a>
+</div>
 
             </form>
 
