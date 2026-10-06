@@ -2,73 +2,130 @@ import { useState } from "react";
 import "./ForgotPassword.css";
 
 function ForgotPassword() {
-    const [email, setEmail] = useState("");
-    const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        setMessage("Check your email for password reset instructions.");
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-    return (
-        <div className="forgot-page">
-            <div className="forgot-container">
+    if (!email.trim()) {
+      return;
+    }
 
-                <div className="welcome-section">
-                    <h1>RentEase</h1>
-                    <h2>Forgot your password?</h2>
-                    <div className="line"></div>
+    // Demo password reset for the university project
+    setSent(true);
+  };
 
-                    <p>
-                        Don't worry. Enter your registered email
-                        and we will help you get back into your
-                        RentEase account.
-                    </p>
-                </div>
+  return (
+    <div className="forgot-page">
+      <div className="forgot-card">
 
-                <div className="reset-section">
-                    <h2>Reset Password</h2>
+        <div className="brand-area">
+          <div className="logo">R</div>
 
-                    <p className="subtitle">
-                        Enter your email address and we will send
-                        instructions to reset your password.
-                    </p>
+          <div className="brand-name">
+            Rent<span>Ease</span>
+          </div>
 
-                    <form onSubmit={handleSubmit}>
-                        <label htmlFor="email">Email Address</label>
-
-                        <input
-                            type="email"
-                            id="email"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(event) =>
-                                setEmail(event.target.value)
-                            }
-                            required
-                        />
-
-                        <button type="submit">
-                            Send Instructions
-                        </button>
-                    </form>
-
-                    {message && (
-                        <div className="success-message">
-                            {message}
-                        </div>
-                    )}
-
-                    <div className="back-login">
-                        <a href="http://localhost/RentEase-Web-System/auth/login.php">
-                            ← Back to Login
-                        </a>
-                    </div>
-                </div>
-
-            </div>
+          <div className="brand-tagline">
+            Property Management System
+          </div>
         </div>
-    );
+
+        {!sent ? (
+          <>
+            <div className="page-heading">
+              <h1>Forgot Password?</h1>
+              <p>
+                Enter the email associated with your RentEase account
+                and we'll send you password reset instructions.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <label htmlFor="email">Email Address</label>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <button type="submit" className="primary-button">
+                Send Reset Instructions
+              </button>
+            </form>
+
+            <a
+              className="back-link"
+              href="http://localhost/RentEase/"
+            >
+              ← Back to Login
+            </a>
+          </>
+        ) : (
+          <>
+            <div className="success-icon">✓</div>
+
+            <div className="page-heading success-heading">
+              <h1>Check Your Email</h1>
+
+              <p>
+                Password reset instructions have been sent to:
+              </p>
+            </div>
+
+            <div className="email-box">
+              {email}
+            </div>
+
+            <p className="small-text">
+              Please check your inbox and follow the instructions
+              to reset your password.
+            </p>
+
+            <div className="demo-note">
+              This is a demonstration password reset feature for RentEase.
+            </div>
+
+            <button
+              type="button"
+              className="sent-button"
+              disabled
+            >
+              ✓ Instructions Sent
+            </button>
+
+            <button
+              type="button"
+              className="try-again"
+              onClick={() => {
+                setSent(false);
+                setEmail("");
+              }}
+            >
+              Use Another Email
+            </button>
+
+            <a
+              className="back-link"
+              href="http://localhost/RentEase/"
+            >
+              ← Back to Login
+            </a>
+          </>
+        )}
+
+        <div className="card-footer">
+          © 2026 RentEase • Renting Made Easy.
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
 export default ForgotPassword;
