@@ -1,260 +1,73 @@
+<?php
 
-<!DOCTYPE html>
-<html lang="en">
+session_start();
 
-<head>
+require_once __DIR__ . '/../config/db.php';
 
-    <!-- Page title -->
-    <title>RentEase | Login</title>
+// Get email and password from login form
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+// Check if fields are empty
+if (empty($email) || empty($password)) {
+    die("Please enter email and password.");
+}
 
-    <style>
+// Find user in database
+$sql = "SELECT user_id, first_name, last_name, email,
+               password_hash, role, account_status
+        FROM users
+        WHERE email = ?";
 
-        /* Main page styling */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+$stmt = $conn->prepare($sql);
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f5efff, #e8ddff);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+if (!$stmt) {
+    die("Database error: " . $conn->error);
+}
 
-        /* Login card */
-        .login-container {
-            width: 850px;
-            max-width: 90%;
-            min-height: 500px;
-            background: white;
-            border-radius: 18px;
-            overflow: hidden;
-            display: flex;
-            box-shadow: 0 12px 35px rgba(60, 40, 90, 0.15);
-        }
+$stmt->bind_param("s", $email);
+$stmt->execute();
 
-        /* Welcome section */
-        .welcome-section {
-            width: 45%;
-            background: linear-gradient(135deg, #6c4ab6, #9272d3);
-            color: white;
-            padding: 55px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+$result = $stmt->get_result();
 
-        .welcome-section h1 {
-            font-size: 42px;
-            margin-bottom: 12px;
-        }
+// Check if email exists
+if ($result->num_rows !== 1) {
+    die("Email not found.");
+}
 
-        .welcome-section h2 {
-            font-size: 23px;
-            font-weight: normal;
-        }
+$user = $result->fetch_assoc();
 
-        .welcome-section p {
-            font-size: 15px;
-            line-height: 1.7;
-            margin-top: 18px;
-        }
+// Check password
+if (!password_verify($password, $user['password_hash'])) {
+    die("Wrong password.");
+}
 
-        .line {
-            width: 55px;
-            height: 4px;
-            background: white;
-            margin-top: 18px;
-            border-radius: 5px;
-        }
+// Check account status
+if ($user['account_status'] !== 'active') {
+    die("Your account is inactive.");
+}
 
-        /* Login form section */
-        .login-section {
-            width: 55%;
-            padding: 55px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+// LOGIN SUCCESSFUL
+// Save user information in session
+$_SESSION['user_id'] = $user['user_id'];
+$_SESSION['role'] = $user['role'];
+$_SESSION['name'] = $user['first_name'] . " " . $user['last_name'];
+$_SESSION['email'] = $user['email'];
 
-        .login-section h2 {
-            color: #2d2340;
-            font-size: 30px;
-            margin-bottom: 8px;
-        }
+// Redirect according to role
+if ($user['role'] === 'manager') {
 
-        .subtitle {
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 28px;
-        }
+    header("Location: ../manager/dashboard.php");
+    exit;
 
-        label {
-            display: block;
-            color: #40384d;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 7px;
-        }
+} elseif ($user['role'] === 'tenant') {
 
-        input {
-            width: 100%;
-            padding: 13px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
+    header("Location: ../tenant/dashboard.php");
+    exit;
 
-        input:focus {
-            border-color: #7b5cc7;
-            box-shadow: 0 0 0 3px rgba(123, 92, 199, 0.1);
-        }
+} else {
 
-        /* Forgot password */
-        .forgot-password {
-            text-align: right;
-            margin-top: -10px;
-            margin-bottom: 20px;
-        }
+    die("Invalid user role.");
+}
 
-        .forgot-password a {
-            color: #6c4ab6;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
-        }
-
-        /* Login button */
-        button {
-            width: 100%;
-            padding: 14px;
-            background: #6c4ab6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #57399b;
-        }
-
-        .footer-text {
-            text-align: center;
-            color: #888;
-            font-size: 13px;
-            margin-top: 22px;
-        }
-
-        /* Mobile layout */
-        @media (max-width: 700px) {
-
-            .login-container {
-                flex-direction: column;
-            }
-
-            .welcome-section,
-            .login-section {
-                width: 100%;
-            }
-
-            .welcome-section {
-                padding: 35px 30px;
-            }
-
-            .login-section {
-                padding: 35px 30px;
-            }
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-    <div class="login-container">
-
-        <!-- Welcome message -->
-        <div class="welcome-section">
-
-            <h1>RentEase</h1>
-
-            <h2>Welcome Back!</h2>
-
-            <div class="line"></div>
-
-            <p>
-                Manage your rental property with ease.
-                RentEase keeps property, lease and
-                maintenance information organised in one place.
-            </p>
-
-        </div>
-
-        <!-- Login form -->
-        <div class="login-section">
-
-            <h2>Sign In</h2>
-
-            <p class="subtitle">
-                Enter your details to access your account.
-            </p>
-
-            <form action="login_process.php" method="POST">
-
-                <label for="email">Email Address</label>
-
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    required
-                >
-
-                <label for="password">Password</label>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    required
-                >
-
-                <div class="forgot-password">
-                    <a href="forgot_password.php">
-                        Forgot your password?
-                    </a>
-                </div>
-
-                <button type="submit">Login</button>
-
-            </form>
-
-            <p class="footer-text">
-                RentEase Property Management System
-            </p>
-
-        </div>
-
-    </div>
-
-</body>
-
-</html>
+?>
